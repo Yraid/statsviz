@@ -51,19 +51,26 @@ const heapData = data => {
             x: data.times,
             y: data.heap[2],
             type: 'scatter',
+            name: 'process mem',
+            hovertemplate: '<b>process mem</b>: %{y:.4s}B',
+        },
+        {
+            x: data.times,
+            y: data.heap[3],
+            type: 'scatter',
             name: 'heap idle',
             hovertemplate: '<b>heap idle</b>: %{y:.4s}B',
         },
         {
             x: data.times,
-            y: data.heap[3],
+            y: data.heap[4],
             type: 'scatter',
             name: 'heap in-use',
             hovertemplate: '<b>heap in-use</b>: %{y:.4s}B',
         },
         {
             x: data.times,
-            y: data.heap[4],
+            y: data.heap[5],
             type: 'scatter',
             name: 'next gc',
             hovertemplate: '<b>next gc</b>: %{y:.4s}B',
@@ -83,6 +90,28 @@ const heapLayout = {
         ticksuffix: 'B',
         // tickformat: ' ',
         exponentformat: 'SI',
+    }
+};
+
+const cpuData = data => {
+    return [{
+        x: data.times,
+        y: data.cpu,
+        type: 'scatter',
+        name: 'process cpu',
+        hovertemplate: '<b>process cpu</b>: %{y:,.1%}',
+    }, ]
+}
+
+const cpuLayout = {
+    title: 'CPU',
+    xaxis: {
+        title: 'time',
+        tickformat: '%H:%M:%S',
+    },
+    yaxis: {
+        title: 'cpu (%)',
+        tickformat: ',.1%',
     }
 };
 
@@ -247,7 +276,7 @@ const gcFractionLayout = {
 
 
 const configs = () => {
-    const plots = ['heap', 'mspan-mcache', 'size-classes', 'objects', 'gcfraction', 'goroutines'];
+    const plots = ['heap', 'cpu', 'mspan-mcache', 'size-classes', 'objects', 'gcfraction', 'goroutines'];
     const cfgs = {};
 
     plots.forEach(plotName => {
@@ -268,6 +297,7 @@ const configs = () => {
 };
 
 const heapElt = $('#heap')[0];
+const cpuElt = $('#cpu')[0];
 const mspanMCacheElt = $('#mspan-mcache')[0];
 const sizeClassesElt = $('#size-classes')[0];
 const objectsElt = $('#objects')[0];
@@ -286,6 +316,7 @@ const createPlots = (data) => {
     });
 
     Plotly.newPlot(heapElt, heapData(data), heapLayout, configs['heap']);
+    Plotly.newPlot(cpuElt, cpuData(data), cpuLayout, configs['cpu']);
     Plotly.newPlot(mspanMCacheElt, mspanMCacheData(data), mspanMCacheLayout, configs['mspan-mcache']);
     Plotly.newPlot(sizeClassesElt, sizeClassesData(data), sizeClassesLayout, configs['size-classes']);
     Plotly.newPlot(objectsElt, objectsData(data), objectsLayout, configs['objects']);
@@ -301,6 +332,11 @@ const updatePlots = data => {
     heapLayout.shapes = gcLines;
     if (!heapElt.hidden) {
         Plotly.react(heapElt, heapData(data), heapLayout, configs['heap']);
+    }
+
+    cpuLayout.shapes = gcLines;
+    if (!cpuElt.hidden) {
+        Plotly.react(cpuElt, cpuData(data), cpuLayout, configs['cpu']);
     }
 
     mspanMCacheLayout.shapes = gcLines;

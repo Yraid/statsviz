@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/arl/statsviz/internal/static"
+	"github.com/yraid/statsviz/internal/static"
 
 	"github.com/gorilla/websocket"
 )

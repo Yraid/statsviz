@@ -3,10 +3,11 @@ import Buffer from "./buffer.js";
 
 const idxHeapAlloc = 0;
 const idxHeapSys = 1;
-const idxHeapIdle = 2;
-const idxHeapInuse = 3;
-const idxHeapNextGC = 4;
-const numSeriesHeap = 5;
+const idxPidMemory = 2;
+const idxHeapIdle = 3;
+const idxHeapInuse = 4;
+const idxHeapNextGC = 5;
+const numSeriesHeap = 6;
 
 const idxMSpanMCacheMSpanInUse = 0;
 const idxMSpanMCacheMSpanSys = 1;
@@ -23,6 +24,7 @@ var data = {
     times: null,
     heap: new Array(numSeriesHeap),
     mspanMCache: new Array(numSeriesMSpanMCache),
+    cpu: null,
     objects: new Array(numSeriesObjects),
     goroutines: null,
     gcfraction: null,
@@ -45,6 +47,7 @@ const init = (buflen, allStats) => {
     data.times = new Buffer(buflen, bufcap);
     data.goroutines = new Buffer(buflen, bufcap);
     data.gcfraction = new Buffer(buflen, bufcap);
+    data.cpu = new Buffer(buflen, bufcap);
 
     for (let i = 0; i < numSeriesHeap; i++) {
         data.heap[i] = new Buffer(buflen, bufcap);
@@ -93,12 +96,15 @@ const pushData = (ts, allStats) => {
     data.times.push(ts); // timestamp
 
     const memStats = allStats.Mem;
+    const pidStats = allStats.ProcessInfo;
 
     data.gcfraction.push(memStats.GCCPUFraction);
     data.goroutines.push(allStats.NumGoroutine);
+    data.cpu.push(pidStats.CPUPercentage);
 
     data.heap[idxHeapAlloc].push(memStats.HeapAlloc);
     data.heap[idxHeapSys].push(memStats.HeapSys);
+    data.heap[idxPidMemory].push(pidStats.MemBytes);
     data.heap[idxHeapIdle].push(memStats.HeapIdle);
     data.heap[idxHeapInuse].push(memStats.HeapInuse);
     data.heap[idxHeapNextGC].push(memStats.NextGC);
@@ -128,6 +134,7 @@ const slice = nitems => {
     const times = data.times.slice(nitems);
     const gcfraction = data.gcfraction.slice(nitems);
     const goroutines = data.goroutines.slice(nitems);
+    const cpu = data.cpu.slice(nitems);
 
     // Heap plot data
     let heap = new Array(numSeriesHeap);
@@ -159,6 +166,7 @@ const slice = nitems => {
         gcfraction: gcfraction,
         goroutines: goroutines,
         heap: heap,
+        cpu: cpu,
         mspanMCache: mspanMCache,
         objects: objects,
         bySizes: bySizes,
